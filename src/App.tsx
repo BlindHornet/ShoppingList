@@ -7,6 +7,8 @@ import {
   onSnapshot,
   query,
   orderBy,
+  where,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import GroceryList from "./components/GroceryList";
@@ -23,6 +25,7 @@ function App() {
   const [newItemCategory, setNewItemCategory] = useState<Category>("Produce");
   const [newItemStore, setNewItemStore] = useState<Store>("Costco");
   const [deleteItem, setDeleteItem] = useState<GroceryItem | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   useEffect(() => {
     const q = query(collection(db, shoppingList), orderBy("createdAt", "desc"));
@@ -38,6 +41,38 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  // Fetch suggestions based on input
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!newItemName.trim()) {
+        setSuggestions([]);
+        return;
+      }
+
+      try {
+        const q = query(
+          collection(db, "shoppingPrices"),
+          where("itemName", ">=", newItemName.trim().toLowerCase()),
+          where("itemName", "<", newItemName.trim().toLowerCase() + "\uf8ff")
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        const matchingSuggestions = querySnapshot.docs
+          .map((doc) => doc.data().itemName)
+          .filter((name) =>
+            name.toLowerCase().startsWith(newItemName.trim().toLowerCase())
+          );
+
+        setSuggestions([...new Set(matchingSuggestions)]);
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+      }
+    };
+
+    fetchSuggestions();
+  }, [newItemName]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItemName.trim()) return;
@@ -50,9 +85,15 @@ function App() {
         createdAt: new Date(),
       });
       setNewItemName("");
+      setSuggestions([]);
     } catch (error) {
       console.error("Error adding item:", error);
     }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setNewItemName(suggestion);
+    setSuggestions([]);
   };
 
   const handleDelete = async () => {
@@ -60,7 +101,7 @@ function App() {
 
     try {
       await deleteDoc(doc(db, shoppingList, deleteItem.id));
-      setDeleteItem(null); // Clear the deleteItem state after successful deletion
+      setDeleteItem(null);
     } catch (error) {
       console.error("Error deleting item:", error);
     }
@@ -75,16 +116,31 @@ function App() {
 
         <form
           onSubmit={handleSubmit}
-          className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8"
+          className="bg-gray-800 rounded-lg shadow-lg p-6 mb-8 relative"
         >
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <input
-              type="text"
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              placeholder="Add item..."
-              className="col-span-2 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-100 placeholder-gray-400"
-            />
+            <div className="col-span-2 relative">
+              <input
+                type="text"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                placeholder="Add item..."
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-100 placeholder-gray-400"
+              />
+              {suggestions.length > 0 && (
+                <div className="absolute z-10 w-full bg-gray-700 border border-gray-600 rounded-b-lg shadow-lg">
+                  {suggestions.map((suggestion) => (
+                    <div
+                      key={suggestion}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="px-4 py-2 hover:bg-gray-600 cursor-pointer text-gray-100"
+                    >
+                      {suggestion}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <select
               value={newItemCategory}
               onChange={(e) => setNewItemCategory(e.target.value as Category)}
