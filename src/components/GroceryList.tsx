@@ -16,24 +16,58 @@ const GroceryList: React.FC<GroceryListProps> = ({ items, onDeleteClick }) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<GroceryItem | null>(null);
   const [itemInfo, setItemInfo] = useState<any>(null); // To hold item info for modal
+  const [itemMatches, setItemMatches] = useState<Record<string, any[]>>({}); // Store matches for item names
 
-  const fetchItemInfo = async (itemName: string) => {
-    const q = query(
-      collection(db, "shoppingPrices"),
-      where("itemName", "==", itemName)
-    );
-    const querySnapshot = await getDocs(q);
+  const onDataUpdated = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "shoppingPrices"));
+    const matches: Record<string, any[]> = {};
 
-    if (!querySnapshot.empty) {
-      const data = querySnapshot.docs.map((doc) => doc.data()); // Collect all matching records
-      setItemInfo(data); // Store all records in state
-    } else {
-      setItemInfo([]); // Set an empty array if no records are found
+    // Iterate through each item and fetch matches from Firestore
+    for (const item of items) {
+      const itemMatches = querySnapshot.docs
+        .filter(doc => doc.data().itemName === item.name)
+        .map(doc => doc.data());
+
+      if (itemMatches.length > 0) {
+        matches[item.name] = itemMatches;
+      }
     }
-  };
+
+    setItemMatches(matches); // Update the state with new matches
+  } catch (error) {
+    console.error("Error refreshing items:", error);
+  }
+};
+
+  useEffect(() => {
+    const fetchAllMatches = async () => {
+      const matches: Record<string, any[]> = {};
+
+      // Iterate through each item and fetch matches from Firestore
+      for (const item of items) {
+        const q = query(
+          collection(db, "shoppingPrices"),
+          where("itemName", "==", item.name)
+        );
+        const querySnapshot = await getDocs(q);
+
+        // Only store matches if there are any found in Firestore
+        if (!querySnapshot.empty) {
+          matches[item.name] = querySnapshot.docs.map((doc) => doc.data());
+        }
+      }
+
+      setItemMatches(matches); // Update the state with valid matches only
+    };
+
+    if (items.length > 0) {
+      fetchAllMatches();
+    }
+  }, [items]);
 
   const handleInfoClick = (itemName: string) => {
-    fetchItemInfo(itemName);
+    setItemInfo(itemMatches[itemName] || []); // Show all matches for this item
   };
 
   const handleSaveClick = (item: GroceryItem) => {
@@ -107,14 +141,18 @@ const GroceryList: React.FC<GroceryListProps> = ({ items, onDeleteClick }) => {
                       index % 2 === 0 ? "bg-gray-800" : "bg-gray-750"
                     )}
                   >
-                    <span className="text-gray-200">{item.name}</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-gray-200">{item.name}</span>
+                      {itemMatches[item.name]?.length > 0 && (
+                        <button
+                          onClick={() => handleInfoClick(item.name)}
+                          className="text-blue-500 hover:text-blue-400 transition-colors"
+                        >
+                          <Icons.Info size={18} />
+                        </button>
+                      )}
+                    </div>
                     <div className="flex items-center space-x-4">
-                      <button
-                        onClick={() => handleInfoClick(item.name)}
-                        className="text-blue-500 hover:text-blue-400 transition-colors"
-                      >
-                        <Icons.Info size={18} />
-                      </button>
                       <button
                         onClick={() => handleSaveClick(item)}
                         className="text-blue-500 hover:text-blue-400 transition-colors"
@@ -140,9 +178,10 @@ const GroceryList: React.FC<GroceryListProps> = ({ items, onDeleteClick }) => {
           isOpen={isModalOpen}
           onClose={() => setModalOpen(false)}
           item={selectedItem}
+          onDataUpdated={onDataUpdated}
         />
       )}
-      {itemInfo && itemInfo.length > 0 && (
+      {itemInfo && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4 border border-gray-700">
             <h3 className="text-lg font-semibold mb-4 text-gray-100">

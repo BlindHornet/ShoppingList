@@ -15,12 +15,14 @@ interface SavePriceModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: { name: string } | null;
+  onDataUpdated: () => void;
 }
 
 export const SavePriceModal: React.FC<SavePriceModalProps> = ({
   isOpen,
   onClose,
   item,
+  onDataUpdated,
 }) => {
   const [brandName, setBrandName] = useState("");
   const [storeName, setStoreName] = useState("");
@@ -105,6 +107,7 @@ export const SavePriceModal: React.FC<SavePriceModalProps> = ({
     }
 
     onClose();
+    onDataUpdated(); // Trigger the callback after data is saved
   };
 
   const displayItemName = () => {
