@@ -9,13 +9,14 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { GroceryList } from "./components/GroceryList";
+import GroceryList from "./components/GroceryList";
 import { DeleteModal } from "./components/DeleteModal";
 import { GroceryItem, Category, Store } from "./types";
 import { Plus } from "lucide-react";
 import "./styles/global.css";
 
 function App() {
+  const shoppingList = "shoppingList";
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [activeTab, setActiveTab] = useState<Store>("Costco");
   const [newItemName, setNewItemName] = useState("");
@@ -24,7 +25,7 @@ function App() {
   const [deleteItem, setDeleteItem] = useState<GroceryItem | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, "groceries"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, shoppingList), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newItems = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -42,7 +43,7 @@ function App() {
     if (!newItemName.trim()) return;
 
     try {
-      await addDoc(collection(db, "groceries"), {
+      await addDoc(collection(db, shoppingList), {
         name: newItemName.trim(),
         category: newItemCategory,
         store: newItemStore,
@@ -58,7 +59,7 @@ function App() {
     if (!deleteItem) return;
 
     try {
-      await deleteDoc(doc(db, "groceries", deleteItem.id));
+      await deleteDoc(doc(db, shoppingList, deleteItem.id));
       setDeleteItem(null); // Clear the deleteItem state after successful deletion
     } catch (error) {
       console.error("Error deleting item:", error);

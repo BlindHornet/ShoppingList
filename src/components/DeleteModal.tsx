@@ -25,16 +25,16 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({
         <p className="mb-6 text-gray-300">
           Are you sure you want to delete "{itemName}"?
         </p>
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-center gap-8">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-400 hover:text-gray-200 transition-colors"
+            className="px-4 py-2 bg-gray-400 text-gray-100 rounded-lg text-shadow hover:text-gray-200 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-gray-100 rounded hover:bg-red-700 transition-colors"
+            className="px-4 py-2 bg-red-600 text-gray-100 rounded-lg text-shadow hover:bg-red-700 transition-colors"
           >
             Delete
           </button>
