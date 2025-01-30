@@ -19,26 +19,26 @@ const GroceryList: React.FC<GroceryListProps> = ({ items, onDeleteClick }) => {
   const [itemMatches, setItemMatches] = useState<Record<string, any[]>>({}); // Store matches for item names
 
   const onDataUpdated = async () => {
-  try {
-    const querySnapshot = await getDocs(collection(db, "shoppingPrices"));
-    const matches: Record<string, any[]> = {};
+    try {
+      const querySnapshot = await getDocs(collection(db, "shoppingPrices"));
+      const matches: Record<string, any[]> = {};
 
-    // Iterate through each item and fetch matches from Firestore
-    for (const item of items) {
-      const itemMatches = querySnapshot.docs
-        .filter(doc => doc.data().itemName === item.name)
-        .map(doc => doc.data());
+      // Iterate through each item and fetch matches from Firestore
+      for (const item of items) {
+        const itemMatches = querySnapshot.docs
+          .filter((doc) => doc.data().itemName === item.name)
+          .map((doc) => doc.data());
 
-      if (itemMatches.length > 0) {
-        matches[item.name] = itemMatches;
+        if (itemMatches.length > 0) {
+          matches[item.name] = itemMatches;
+        }
       }
-    }
 
-    setItemMatches(matches); // Update the state with new matches
-  } catch (error) {
-    console.error("Error refreshing items:", error);
-  }
-};
+      setItemMatches(matches); // Update the state with new matches
+    } catch (error) {
+      console.error("Error refreshing items:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchAllMatches = async () => {
@@ -76,13 +76,19 @@ const GroceryList: React.FC<GroceryListProps> = ({ items, onDeleteClick }) => {
   };
 
   const categories = [
-    "Produce",
+    "Fruits",
+    "Vegetables",
     "Meat",
-    "Dairy",
     "Dry Goods",
-    "Frozen",
+    "Condiments & Spices",
     "Snacks",
+    "Dairy",
+    "Frozen Foods",
+    "Beverages",
+    "Household Supplies",
     "Health Care",
+    "Dogs",
+    "Gifts",
     "Other",
   ];
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
