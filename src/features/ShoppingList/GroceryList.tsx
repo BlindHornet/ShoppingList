@@ -1,11 +1,18 @@
+//Library Imports
 import React, { useState, useEffect } from "react";
 import * as Icons from "lucide-react";
-import { GroceryItem } from "../types";
 import clsx from "clsx";
-import "../styles/global.css";
-import { SavePriceModal } from "./SavePriceModal"; // Ensure correct import
-import { db } from "../firebase"; // Import your Firestore instance
+
+//Services and Types
+import { GroceryItem } from "../../services/types";
+import { db } from "../../services/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
+
+//Component Imports
+import { SavePriceModal } from "./SavePriceModal";
+
+//Style Imports
+import "../../styles/global.css";
 
 interface GroceryListProps {
   items: GroceryItem[];
@@ -77,6 +84,7 @@ const GroceryList: React.FC<GroceryListProps> = ({ items, onDeleteClick }) => {
 
   const categories = [
     "Fruits",
+    "Produce",
     "Vegetables",
     "Meat",
     "Dry Goods",

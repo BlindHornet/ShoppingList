@@ -1,5 +1,8 @@
+//Local Imports
 import React from "react";
-import "../styles/global.css";
+
+//Style Imports
+import "../../styles/global.css";
 
 interface DeleteModalProps {
   isOpen: boolean;

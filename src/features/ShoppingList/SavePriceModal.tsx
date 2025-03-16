@@ -1,5 +1,8 @@
+//Local Imports
 import React, { useState, useEffect } from "react";
-import { db } from "../firebase";
+
+//Firebase Imports
+import { db } from "../../services/firebase";
 import {
   collection,
   addDoc,
@@ -9,7 +12,9 @@ import {
   setDoc,
   doc,
 } from "firebase/firestore";
-import "../styles/global.css";
+
+//Style Imports
+import "../../styles/global.css";
 
 interface SavePriceModalProps {
   isOpen: boolean;
